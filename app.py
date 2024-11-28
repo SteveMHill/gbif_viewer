@@ -58,14 +58,13 @@ CARD_TEXT_STYLE = {
 mt = get_mapbox_token()
 px.set_mapbox_access_token(mt)
 
-data = pl.read_parquet('data/dragonfly_database.parquet', columns=["gbifID","occurrenceID","country","Region","species","publisherType","genus","decimalLatitude","decimalLongitude"])
-data = data.rename({"species": "Species"})
+data = pl.read_parquet('data/dragonfly_database.parquet', columns=["gbifID","occurrenceID","country","Region","species","publisher","publisherType","basisOfRecord","genus","sex","decimalLatitude","decimalLongitude"])
+data = data.rename({"species": "Species", "genus": "Genus", "sex":"Sex", "publisher":"Publisher"})
 region = data.select(pl.col("country")).unique().to_series().to_list()
 region.append('All')
 region.sort()
 
-nxHex=[50,100,150,200,250]
-vari = ["Region","Species","publisherType"]
+vari = ["Region","Species", "Genus", "Sex","basisOfRecord","publisherType","Publisher"]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -78,7 +77,7 @@ controls = html.Div(
                 dcc.Dropdown(vari,  value='Region', id='para'),
                 html.Br(),
                 html.P('HexSize', style={'textAlign': 'center'}),
-                dcc.Dropdown(nxHex, value=100, id='hexsize')
+                dcc.Slider(50, 300, 50, value=100,id='hexsize'),
             ])
 
 sidebar = html.Div(
@@ -120,9 +119,9 @@ card_row = dbc.Row([
 first_row = dbc.Row(
     [
         dbc.Col(
-             dcc.Graph(id = 'map',config = {'displayModeBar': 'hover','scrollZoom': True}), md=12,
+             dcc.Graph(id = 'map',config = {'displayModeBar': 'hover','scrollZoom': True}),md=12,
         )
-    ]
+    ],
 )
 
 second_row = dbc.Row(
@@ -134,7 +133,7 @@ second_row = dbc.Row(
 )
 
 
-content = html.Div(
+content = dbc.Container(
     [
         html.H2('Dragonfly Dashboard', style=CARD_TEXT_STYLE),
         html.Hr(),
@@ -209,4 +208,5 @@ def update_map(country, hexsize):
     return mapfig
 
 
-server = app.server
+if __name__ == '__main__':
+    app.run_server(debug = True)
