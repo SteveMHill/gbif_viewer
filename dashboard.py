@@ -193,5 +193,4 @@ def update_map(country, hexsize):
     return mapfig
 
 
-if __name__ == '__main__':
-    app.run_server(debug = True)
+server = app.server

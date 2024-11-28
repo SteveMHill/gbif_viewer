@@ -1,0 +1,6 @@
+gunicorn
+polars
+pandas
+plotly
+dash
+dash-bootstrap-components
