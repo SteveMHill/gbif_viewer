@@ -58,16 +58,16 @@ CARD_TEXT_STYLE = {
 mt = get_mapbox_token()
 px.set_mapbox_access_token(mt)
 
-data = pl.read_parquet('data/dragonfly_database.parquet', columns=["gbifID","occurrenceID","country","Region","species","publisher","publisherType","basisOfRecord","genus","sex","decimalLatitude","decimalLongitude"])
+data = pl.read_parquet('data/dragonfly_database.parquet', columns=["gbifID","occurrenceID","country","Region","species","publisher","basisOfRecord","genus","sex","decimalLatitude","decimalLongitude"])
 data = data.rename({"species": "Species", "genus": "Genus", "sex":"Sex", "publisher":"Publisher"})
 region = data.select(pl.col("country")).unique().to_series().to_list()
 region.append('All')
 region.sort()
 
-vari = ["Region","Species", "Genus", "Sex","basisOfRecord","publisherType","Publisher"]
+vari = ["Region","Species", "Genus", "Sex","basisOfRecord","Publisher"]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
+server = app.server
 controls = html.Div(
             [
                 html.P('Select Region', style={'textAlign': 'center'}),
@@ -119,7 +119,7 @@ card_row = dbc.Row([
 first_row = dbc.Row(
     [
         dbc.Col(
-             dcc.Graph(id = 'map',config = {'displayModeBar': 'hover','scrollZoom': True}),md=12,
+             dcc.Graph(id = 'map',config = {'displayModeBar': 'hover','scrollZoom': True},style={"height": 500}),md=12,
         )
     ],
 )
@@ -135,8 +135,8 @@ second_row = dbc.Row(
 
 content = dbc.Container(
     [
-        html.H2('Dragonfly Dashboard', style=CARD_TEXT_STYLE),
-        html.Hr(),
+        #html.H2('Dragonfly Dashboard', style=CARD_TEXT_STYLE),
+        #html.Hr(),
         card_row,
         first_row,
         second_row,
@@ -179,10 +179,10 @@ def update_graph(country, para):
     if country == "All":
         if para == "Region":
             npc = data.group_by(pl.col("country")).len().sort(by="len", descending=True)
-            barfig = px.bar(npc, x="country", y='len',labels={'len':'Number of occurrences'}, log_y=True)
+            barfig = px.bar(npc, x="country", y='len',labels={'len':'Number of occurrences'}, log_y=False)
         else:
             npc = data.group_by(pl.col(para)).len().sort(by="len", descending=True)
-            barfig = px.bar(npc, x=para, y='len',labels={'len':'Number of occurrences'}, log_y=True)
+            barfig = px.bar(npc, x=para, y='len',labels={'len':'Number of occurrences'}, log_y=False)
     else:
         df = data.filter(pl.col("country") == country)
         spc = df.group_by(pl.col(para)).len().sort(by= "len", descending=True)
